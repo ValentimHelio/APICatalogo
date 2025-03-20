@@ -18,11 +18,11 @@ public class CategoriasController : ControllerBase
     }
 
     [HttpGet("produtos")]
-    public ActionResult<IEnumerable<Categoria>> GetCategoriasProdutos()
+    public async Task<ActionResult<IEnumerable<Categoria>>> GetCategoriasProdutos()
     {
         try
         {
-            return _context.Categorias.Include(p => p.Produtos).ToList();
+            return await _context.Categorias.Include(p => p.Produtos).ToListAsync();
         }
         catch (Exception)
         {
@@ -32,11 +32,11 @@ public class CategoriasController : ControllerBase
     }
 
     [HttpGet]
-    public ActionResult<IEnumerable<Categoria>> Get()
+    public async Task<ActionResult<IEnumerable<Categoria>>> Get()
     {
         try
         {
-            return _context.Categorias.AsNoTracking().ToList();
+            return await _context.Categorias.AsNoTracking().ToListAsync();
         }
         catch (Exception)
         {
@@ -47,11 +47,11 @@ public class CategoriasController : ControllerBase
     }
 
     [HttpGet("{id:int}", Name = "ObterCategoria")]
-    public ActionResult<Categoria> Get(int id)
+    public async Task<ActionResult<Categoria>> Get(int id)
     {
         try
         {
-            var categoria = _context.Categorias.FirstOrDefault(p => p.CategoriaId == id);
+            var categoria = await _context.Categorias.FirstOrDefaultAsync(p => p.CategoriaId == id);
 
             if (categoria == null)
             {

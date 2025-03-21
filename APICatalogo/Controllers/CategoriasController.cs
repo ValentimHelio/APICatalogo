@@ -34,8 +34,8 @@ public class CategoriasController : ControllerBase
 
         if (categoria is null)
         {
-            _logger.LogWarning($"Categoria com id= {id} não encontrada...");
-            return NotFound($"Categoria com id= {id} não encontrada...");
+            _logger.LogWarning($"Categoria com id = {id} não encontrada...");
+            return NotFound($"Categoria com id = {id} não encontrada...");
         }
         return Ok(categoria);
     }
@@ -74,8 +74,8 @@ public class CategoriasController : ControllerBase
 
         if (categoria == null)
         {
-            _logger.LogWarning($"Categoria com id={id} não encontrada...");
-            return NotFound($"Categoria com id={id} não encontrada...");
+            _logger.LogWarning($"Categoria com id = {id} não encontrada...");
+            return NotFound($"Categoria com id = {id} não encontrada...");
         }
 
         var categoriaExcluida = _repository.Delete(id);

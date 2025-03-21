@@ -39,6 +39,9 @@ namespace APICatalogo.Repositories
             if (categoria is null)
                 throw new ArgumentNullException(nameof(categoria));
 
+            if (!_context.Categorias.Any(c => c.CategoriaId.Equals(categoria.CategoriaId)))
+                throw new ArgumentNullException(nameof(categoria));
+
             _context.Entry(categoria).State = EntityState.Modified;
             _context.SaveChanges();
             return categoria;

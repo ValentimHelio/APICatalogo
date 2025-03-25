@@ -9,20 +9,23 @@ namespace APICatalogo.Controllers;
 [ApiController]
 public class ProdutosController : ControllerBase
 {
-    private readonly ProdutoRepository _produtoRepository;
+    private readonly IProdutoRepository _produtoRepository;
+    private readonly ILogger<ProdutosController> _logger;
 
-    public ProdutosController(ProdutoRepository produtoRepository)
+    public ProdutosController(IProdutoRepository produtoRepository, ILogger<ProdutosController> logger)
     {
         _produtoRepository = produtoRepository;
+        _logger = logger;
     }
 
     [HttpGet("produtoPorCategoria/{id}")]
     public ActionResult<IEnumerable<Produto>> GetProdutosPorCategoria(int id)
     {
         var produtos = _produtoRepository.GetProdutosPorCategoria(id);
-        if (produtos is null)
+        if (produtos.Count().Equals(0))
         {
-            return NotFound();
+            _logger.LogWarning($"Produto com a CatergoriaId = {id} não encontrado...");
+            return NotFound($"Produto com a CatergoriaId = {id} não encontrado...");
         }
         return Ok(produtos);
     }
@@ -41,7 +44,8 @@ public class ProdutosController : ControllerBase
         var produto = _produtoRepository.Get(p => p.ProdutoId == id);
         if (produto is null)
         {
-            return NotFound("Produto não encontrado...");
+            _logger.LogWarning($"Produto com id = {id} não encontrado...");
+            return NotFound($"Produto com id = {id} não encontrado...");
         }
         return Ok(produto);
     }

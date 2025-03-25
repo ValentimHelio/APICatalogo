@@ -1,4 +1,5 @@
-﻿using APICatalogo.Models;
+﻿using APICatalogo.DTOs;
+using APICatalogo.Models;
 using APICatalogo.Repositories.IRepositories;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,11 +22,24 @@ public class CategoriasController : ControllerBase
     public ActionResult<IEnumerable<Categoria>> Get()
     {
         var categorias = _iof.categoriaRepository.GetAll();
-        return Ok(categorias);
+
+        var CategoriaDTO = new List<CategoriaDTO>();
+        foreach (var item in categorias)
+        {
+            var categoriaDto = new CategoriaDTO()
+            {
+                CategoriaId = item.CategoriaId,
+                Nome = item.Nome,
+                ImageUrl = item.ImageUrl
+            };
+            CategoriaDTO.Add(categoriaDto);
+        }
+
+        return Ok(CategoriaDTO);
     }
 
     [HttpGet("{id:int}", Name = "ObterCategoria")]
-    public ActionResult<Categoria> Get(int id)
+    public ActionResult<CategoriaDTO> Get(int id)
     {
         var categoria = _iof.categoriaRepository.Get(c => c.CategoriaId == id);
 
@@ -34,40 +48,77 @@ public class CategoriasController : ControllerBase
             _logger.LogWarning($"Categoria com id = {id} não encontrada...");
             return NotFound($"Categoria com id = {id} não encontrada...");
         }
-        return Ok(categoria);
+
+        var categoriaDTO = new CategoriaDTO()
+        {
+            CategoriaId = categoria.CategoriaId,
+            Nome = categoria.Nome,
+            ImageUrl = categoria.ImageUrl
+        };
+
+        return Ok(categoriaDTO);
     }
 
     [HttpPost]
-    public ActionResult Post(Categoria categoria)
+    public ActionResult<CategoriaDTO> Post(CategoriaDTO categoriaDto)
     {
-        if (categoria is null)
+        if (categoriaDto is null)
         {
             _logger.LogWarning($"Dados inválidos...");
             return BadRequest("Dados inválidos");
         }
+
+        var categoria = new Categoria()
+        {
+            CategoriaId = categoriaDto.CategoriaId,
+            Nome = categoriaDto.Nome,
+            ImageUrl = categoriaDto.ImageUrl
+        };
 
         var categoriaCriada = _iof.categoriaRepository.Create(categoria);
         _iof.Commit();
 
-        return new CreatedAtRouteResult("ObterCategoria", new { id = categoriaCriada.CategoriaId }, categoria);
+        var categoriaDTO = new CategoriaDTO()
+        {
+            CategoriaId = categoriaCriada.CategoriaId,
+            Nome = categoriaCriada.Nome,
+            ImageUrl = categoriaCriada.ImageUrl
+        };
+
+        return new CreatedAtRouteResult("ObterCategoria", new { id = categoriaCriada.CategoriaId }, categoriaDto);
     }
 
     [HttpPut("{id:int}")]
-    public ActionResult Put(int id, Categoria categoria)
+    public ActionResult<CategoriaDTO> Put(int id, CategoriaDTO categoriaDto)
     {
-        if (id != categoria.CategoriaId)
+        if (id != categoriaDto.CategoriaId)
         {
             _logger.LogWarning($"Dados inválidos...");
             return BadRequest("Dados inválidos");
         }
 
+        var categoria = new Categoria()
+        {
+            CategoriaId = categoriaDto.CategoriaId,
+            Nome = categoriaDto.Nome,
+            ImageUrl = categoriaDto.ImageUrl
+        };
+
         _iof.categoriaRepository.Update(categoria);
         _iof.Commit();
-        return Ok(categoria);
+
+        var categoriaAtualizadaDTO = new CategoriaDTO()
+        {
+            CategoriaId = categoria.CategoriaId,
+            Nome = categoria.Nome,
+            ImageUrl = categoria.ImageUrl
+        };
+
+        return Ok(categoriaAtualizadaDTO);
     }
 
     [HttpDelete("{id:int}")]
-    public ActionResult Delete(int id)
+    public ActionResult<CategoriaDTO> Delete(int id)
     {
         var categoria = _iof.categoriaRepository.Get(c => c.CategoriaId == id);
 
@@ -79,6 +130,13 @@ public class CategoriasController : ControllerBase
 
         var categoriaExcluida = _iof.categoriaRepository.Delete(categoria);
         _iof.Commit();
-        return Ok(categoriaExcluida);
+
+        var categoriaExcluidaDTO = new CategoriaDTO()
+        {
+            CategoriaId = categoria.CategoriaId,
+            Nome = categoria.Nome,
+            ImageUrl = categoria.ImageUrl
+        };
+        return Ok(categoriaExcluidaDTO);
     }
 }

@@ -14,7 +14,7 @@ namespace APICatalogo.Repositories
             _context = context;
         }
 
-        public IProdutoRepository produtoRepository
+        public IProdutoRepository ProdutoRepository
         {
             get
             {
@@ -22,7 +22,7 @@ namespace APICatalogo.Repositories
             }
         }
 
-        public ICategoriaRepository categoriaRepository
+        public ICategoriaRepository CategoriaRepository
         {
             get
             {

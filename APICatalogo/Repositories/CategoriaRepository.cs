@@ -15,4 +15,19 @@ public class CategoriaRepository : Repository<Categoria>, ICategoriaRepository
         var categoriasOrdenados = PagedList<Categoria>.ToPagedList(categorias, categoriaParameters.PageNumber, categoriaParameters.PageSize);
         return categoriasOrdenados;
     }
+
+    public PagedList<Categoria> GetCategoriasFiltroNome(CategoriaFiltroNome categoriasParams)
+    {
+        var categorias = GetAll().AsQueryable();
+
+        if (!string.IsNullOrEmpty(categoriasParams.Nome))
+        {
+            categorias = categorias.Where(c => c.Nome.Contains(categoriasParams.Nome, StringComparison.OrdinalIgnoreCase));
+        }
+
+        var categoriasFiltradas = PagedList<Categoria>.ToPagedList(categorias, categoriasParams.PageNumber, categoriasParams.PageSize);
+
+        return categoriasFiltradas;
+    }
+
 }

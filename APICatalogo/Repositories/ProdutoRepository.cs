@@ -9,17 +9,25 @@ namespace APICatalogo.Repositories
     {
         public ProdutoRepository(AppDbContext context) : base(context) { }
 
-        public IEnumerable<Produto> GetProdutos(ProdutoParameters produtoParameters)
+        //public IEnumerable<Produto> GetProdutos(ProdutoParameters produtoParameters)
+        //{
+        //    return GetAll()
+        //        .OrderBy(p => p.Nome)
+        //        .Skip((produtoParameters.PageNumber - 1) * produtoParameters.PageSize)
+        //        .Take(produtoParameters.PageSize).ToList();
+        //}
+
+        PagedList<Produto> IProdutoRepository.GetProdutos(ProdutoParameters produtoParameters)
         {
-            return GetAll()
-                .OrderBy(p => p.Nome)
-                .Skip((produtoParameters.PageNumber - 1) * produtoParameters.PageSize)
-                .Take(produtoParameters.PageSize).ToList();
+            var produtos = GetAll().OrderBy(p => p.ProdutoId).AsQueryable();
+            var produtosOrdenados = PagedList<Produto>.ToPagedList(produtos, produtoParameters.PageNumber, produtoParameters.PageSize);
+            return produtosOrdenados;
         }
 
         public IEnumerable<Produto> GetProdutosPorCategoria(int id)
         {
             return GetAll().Where(c => c.CategoriaId == id);
         }
+
     }
 }

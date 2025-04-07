@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 
@@ -26,7 +27,6 @@ builder.Services.AddControllers(options =>
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 }).AddNewtonsoftJson();
 
-builder.Services.AddAuthorization();
 builder.Services.AddEndpointsApiExplorer();
 
 builder.Services.AddSwaggerGen(c =>
@@ -56,6 +56,18 @@ builder.Services.AddSwaggerGen(c =>
                          new string[] {}
                     }
                 });
+});
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("SuperAdminOnly", policy => policy.RequireRole("Admin").RequireClaim("id", "valentim"));
+    options.AddPolicy("UserOlny", policy => policy.RequireRole("User"));
+    options.AddPolicy("ExclusivePolicyOnly", policy =>
+    {
+        policy.RequireAssertion(context => context.User.HasClaim(claim => claim.Type == "id" && claim.Value == "valentim" || context.User.IsInRole("SuperAdmin")));
+    });
+
 });
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<AppDbContext>().AddDefaultTokenProviders();

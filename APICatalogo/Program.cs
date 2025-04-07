@@ -5,6 +5,8 @@ using APICatalogo.Logging;
 using APICatalogo.Models;
 using APICatalogo.Repositories;
 using APICatalogo.Repositories.IRepositories;
+using APICatalogo.Servives;
+using APICatalogo.Servives.IServives;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -63,6 +65,7 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();
 builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 
 builder.Logging.AddProvider(new CustomLoggerProvider(new CustomLoggerProviderConfiguration { LogLevel = LogLevel.Information }));
 builder.Services.AddAutoMapper(typeof(ProdutoDTOMappingProfile));

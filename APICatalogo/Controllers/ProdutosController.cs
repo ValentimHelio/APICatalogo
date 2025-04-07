@@ -3,6 +3,7 @@ using APICatalogo.Models;
 using APICatalogo.Pagination;
 using APICatalogo.Repositories.IRepositories;
 using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -161,6 +162,7 @@ public class ProdutosController : ControllerBase
     }
 
     [HttpDelete("{id:int}")]
+    [Authorize(Policy = "AdminOnly")]
     public async Task<ActionResult<ProdutoDTO>> Delete(int id)
     {
         var produto = await _uof.ProdutoRepository.GetAsync(p => p.ProdutoId == id);

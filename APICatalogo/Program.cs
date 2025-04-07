@@ -24,7 +24,7 @@ builder.Services.AddControllers(options =>
 }).AddNewtonsoftJson();
 
 builder.Services.AddAuthorization();
-builder.Services.AddAuthentication("Bearer").AddJwtBearer();
+
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
@@ -56,7 +56,6 @@ builder.Services.AddAuthentication(options =>
                            Encoding.UTF8.GetBytes(secretKey))
     };
 });
-
 
 
 builder.Services.AddScoped<ApiLoggingFilter>();

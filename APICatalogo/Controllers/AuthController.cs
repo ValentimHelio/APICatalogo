@@ -19,19 +19,22 @@ public class AuthController : ControllerBase
     private readonly IConfiguration _configuration;
     private readonly ILogger<AuthController> _logger;
 
-    public AuthController(ITokenService tokenService, UserManager<ApplicationUser> userManager, 
-                            RoleManager<IdentityRole> roleManage, IConfiguration configuration, ILogger<AuthController> logger)
+    public AuthController(ITokenService tokenService,
+                          UserManager<ApplicationUser> userManager,
+                          RoleManager<IdentityRole> roleManager,
+                          IConfiguration configuration,
+                          ILogger<AuthController> logger)
     {
         _tokenService = tokenService;
         _userManager = userManager;
-        _roleManager = roleManage;
+        _roleManager = roleManager;
         _configuration = configuration;
         _logger = logger;
     }
 
     [HttpPost]
-    [Route("CreateRole")]
     [Authorize(Policy = "SuperAdminOnly")]
+    [Route("CreateRole")]
     public async Task<IActionResult> CreateRole(string roleName)
     {
         var roleExist = await _roleManager.RoleExistsAsync(roleName);
@@ -68,8 +71,8 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost]
-    [Route("AddUserToRole")]
     [Authorize(Policy = "SuperAdminOnly")]
+    [Route("AddUserToRole")]
     public async Task<IActionResult> AddUserToRole(string email, string roleName)
     {
         var user = await _userManager.FindByEmailAsync(email);
@@ -115,7 +118,7 @@ public class AuthController : ControllerBase
             {
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(ClaimTypes.Email, user.Email!),
-                new Claim("id", user.UserName!),
+                new Claim("id",user.UserName!),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             };
 
@@ -124,13 +127,16 @@ public class AuthController : ControllerBase
                 authClaims.Add(new Claim(ClaimTypes.Role, userRole));
             }
 
-            var token = _tokenService.GenerateAccessToken(authClaims, _configuration);
+            var token = _tokenService.GenerateAccessToken(authClaims,
+                                                         _configuration);
 
             var refreshToken = _tokenService.GenerateRefreshToken();
 
-            _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInMinutes"], out int refreshTokenValidityInMinutes);
+            _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInMinutes"],
+                               out int refreshTokenValidityInMinutes);
 
-            user.RefreshTokenExpiryTime = DateTime.Now.AddMinutes(refreshTokenValidityInMinutes);
+            user.RefreshTokenExpiryTime =
+                            DateTime.Now.AddMinutes(refreshTokenValidityInMinutes);
 
             user.RefreshToken = refreshToken;
 
@@ -143,9 +149,8 @@ public class AuthController : ControllerBase
                 Expiration = token.ValidTo
             });
         }
-
         return Unauthorized();
-
+        //return Forbid();
     }
 
     [HttpPost]
@@ -183,14 +188,17 @@ public class AuthController : ControllerBase
     [Route("refresh-token")]
     public async Task<IActionResult> RefreshToken(TokenModel tokenModel)
     {
+
         if (tokenModel is null)
         {
             return BadRequest("Invalid client request");
         }
 
-        string? accessToken = tokenModel.AccessToken ?? throw new ArgumentNullException(nameof(tokenModel));
+        string? accessToken = tokenModel.AccessToken
+                              ?? throw new ArgumentNullException(nameof(tokenModel));
 
-        string? refreshToken = tokenModel.RefreshToken ?? throw new ArgumentException(nameof(tokenModel));
+        string? refreshToken = tokenModel.RefreshToken
+                               ?? throw new ArgumentException(nameof(tokenModel));
 
         var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken!, _configuration);
 
@@ -199,16 +207,18 @@ public class AuthController : ControllerBase
             return BadRequest("Invalid access token/refresh token");
         }
 
-        string username = principal.Identity!.Name!;
+        string username = principal.Identity.Name;
 
         var user = await _userManager.FindByNameAsync(username!);
 
-        if (user == null || user.RefreshToken != refreshToken || user.RefreshTokenExpiryTime <= DateTime.Now)
+        if (user == null || user.RefreshToken != refreshToken
+                         || user.RefreshTokenExpiryTime <= DateTime.Now)
         {
             return BadRequest("Invalid access token/refresh token");
         }
 
-        var newAccessToken = _tokenService.GenerateAccessToken(principal.Claims.ToList(), _configuration);
+        var newAccessToken = _tokenService.GenerateAccessToken(
+                                           principal.Claims.ToList(), _configuration);
 
         var newRefreshToken = _tokenService.GenerateRefreshToken();
 
@@ -223,7 +233,7 @@ public class AuthController : ControllerBase
         });
     }
 
-    [Authorize(Policy = "ExclusivePolicyOnly")]
+    [Authorize(Policy = "ExclusiveOnly")]
     [HttpPost]
     [Route("revoke/{username}")]
     public async Task<IActionResult> Revoke(string username)

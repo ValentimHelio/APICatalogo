@@ -72,7 +72,7 @@ public class ProdutosController : ControllerBase
         return Ok(produtosDto);
     }
 
-
+    [Authorize(Policy = "UserOnly")]
     [HttpGet]
     public async Task<ActionResult<IEnumerable<ProdutoDTO>>> Get()
     {
@@ -82,6 +82,8 @@ public class ProdutosController : ControllerBase
         var produtosDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
         return Ok(produtosDto);
     }
+
+
 
     [HttpGet("{id}", Name = "ObterProduto")]
     public async Task<ActionResult<ProdutoDTO>> Get(int id)
@@ -95,6 +97,9 @@ public class ProdutosController : ControllerBase
         var produtoDto = _mapper.Map<ProdutoDTO>(produto);
         return Ok(produtoDto);
     }
+
+
+
 
     [HttpPost]
     public async Task<ActionResult<ProdutoDTO>> Create(ProdutoDTO produtoDto)
@@ -111,6 +116,9 @@ public class ProdutosController : ControllerBase
 
         return new CreatedAtRouteResult("ObterProduto", new { id = novoProdutoDto.ProdutoId }, novoProdutoDto);
     }
+
+
+
 
     [HttpPatch("{id}/UpdatePartial")]
     public async Task<ActionResult<ProdutoDTOUpdateResponse>> Patch(int id, JsonPatchDocument<ProdutoDTOUpdateRequest> patchProdutoDto)
@@ -146,6 +154,8 @@ public class ProdutosController : ControllerBase
         //retorna ProdutoDTOUpdateResponse
         return Ok(_mapper.Map<ProdutoDTOUpdateResponse>(produto));
     }
+
+
 
     [HttpPut("{id:int}")]
     public async Task<ActionResult<ProdutoDTO>> Update(int id, ProdutoDTO produtoDto)

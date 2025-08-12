@@ -1,17 +1,19 @@
 ﻿using APICatalogo.DTOs;
-using APICatalogo.Models;
-using APICatalogo.Repositories.IRepositories;
-using Microsoft.AspNetCore.Mvc;
 using APICatalogo.DTOs.Mappings;
+using APICatalogo.Models;
 using APICatalogo.Pagination;
+using APICatalogo.Repositories.IRepositories;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Newtonsoft.Json;
 using X.PagedList;
-using Microsoft.AspNetCore.Authorization;
 
 namespace APICatalogo.Controllers;
 
 [Route("[controller]")]
 [ApiController]
+[EnableRateLimiting("fixedwindow")]
 public class CategoriasController : ControllerBase
 {
     private readonly IUnitOfWork _uof;
@@ -23,9 +25,10 @@ public class CategoriasController : ControllerBase
         _logger = logger;
     }
 
+    //[Authorize]
     [HttpGet]
-    [Authorize]
-    public async Task<ActionResult<IEnumerable<Categoria>>> Get()
+    [DisableRateLimiting]
+    public async Task<ActionResult<IEnumerable<CategoriaDTO>>> Get()
     {
         var categorias = await _uof.CategoriaRepository.GetAllAsync();
 
@@ -37,6 +40,7 @@ public class CategoriasController : ControllerBase
         return Ok(categoriasDto);
     }
 
+
     [HttpGet("pagination")]
     public async Task<ActionResult<IEnumerable<CategoriaDTO>>> Get([FromQuery] CategoriaParameters categoriasParameters)
     {
@@ -46,11 +50,14 @@ public class CategoriasController : ControllerBase
     }
 
     [HttpGet("filter/nome/pagination")]
-    public async Task<ActionResult<IEnumerable<CategoriaDTO>>> GetCategoriasFiltradas([FromQuery] CategoriaFiltroNome categoriasFiltro)
+    public async Task<ActionResult<IEnumerable<CategoriaDTO>>> GetCategoriasFiltradas(
+                                  [FromQuery] CategoriaFiltroNome categoriasFiltro)
     {
-        var categoriasFiltradas = await _uof.CategoriaRepository.GetCategoriasFiltroNomeAsync(categoriasFiltro);
+        var categoriasFiltradas = await _uof.CategoriaRepository
+                                     .GetCategoriasFiltroNomeAsync(categoriasFiltro);
 
         return ObterCategorias(categoriasFiltradas);
+
     }
 
     private ActionResult<IEnumerable<CategoriaDTO>> ObterCategorias(IPagedList<Categoria> categorias)
@@ -69,7 +76,6 @@ public class CategoriasController : ControllerBase
         var categoriasDto = categorias.ToCategoriaDTOList();
         return Ok(categoriasDto);
     }
-
 
     [HttpGet("{id:int}", Name = "ObterCategoria")]
     public async Task<ActionResult<CategoriaDTO>> Get(int id)
@@ -103,9 +109,7 @@ public class CategoriasController : ControllerBase
 
         var novaCategoriaDto = categoriaCriada.ToCategoriaDTO();
 
-        return new CreatedAtRouteResult("ObterCategoria",
-            new { id = novaCategoriaDto.CategoriaId },
-            novaCategoriaDto);
+        return new CreatedAtRouteResult("ObterCategoria", new { id = novaCategoriaDto.CategoriaId }, novaCategoriaDto);
     }
 
     [HttpPut("{id:int}")]
@@ -146,4 +150,5 @@ public class CategoriasController : ControllerBase
 
         return Ok(categoriaExcluidaDto);
     }
+
 }

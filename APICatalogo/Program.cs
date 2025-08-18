@@ -8,6 +8,7 @@ using APICatalogo.Repositories;
 using APICatalogo.Repositories.IRepositories;
 using APICatalogo.Servives;
 using APICatalogo.Servives.IServives;
+using Asp.Versioning;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.RateLimiting;
@@ -76,15 +77,13 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>()
     .AddDefaultTokenProviders();
 
-string mySqlConnection = builder.Configuration
-                                .GetConnectionString("DefaultConnection");
+string mySqlConnection = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<AppDbContext>(options =>
                     options.UseMySql(mySqlConnection,
                     ServerVersion.AutoDetect(mySqlConnection)));
 
-var secretKey = builder.Configuration["JWT:SecretKey"]
-                   ?? throw new ArgumentException("Invalid secret key!!");
+var secretKey = builder.Configuration["JWT:SecretKey"] ?? throw new ArgumentException("Invalid secret key!!");
 
 builder.Services.AddAuthentication(options =>
 {
@@ -156,6 +155,19 @@ builder.Services.AddRateLimiter(options =>
                                 Window = TimeSpan.FromSeconds(10)
                             }));
 });
+
+builder.Services.AddApiVersioning(options =>
+{
+    options.DefaultApiVersion = new ApiVersion(1, 0);
+    options.AssumeDefaultVersionWhenUnspecified = true;
+    options.ReportApiVersions = true;
+}).AddApiExplorer(options =>
+{
+    options.GroupNameFormat = "'v'VVV";
+    options.SubstituteApiVersionInUrl = true;
+
+});
+
 
 builder.Services.AddScoped<ApiLoggingFilter>();
 builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>();

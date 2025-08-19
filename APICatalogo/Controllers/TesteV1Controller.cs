@@ -7,6 +7,7 @@ namespace APICatalogo.Controllers;
 [ApiController]
 //[ApiVersion("1.0")]
 [ApiVersion("1.0", Deprecated = true)]
+[ApiExplorerSettings(IgnoreApi = true)]
 public class TesteV1Controller : ControllerBase
 {
     [HttpGet]

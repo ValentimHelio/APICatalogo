@@ -14,6 +14,7 @@ namespace APICatalogo.Controllers;
 [Route("[controller]")]
 [ApiController]
 [Produces("application/json")]
+[ApiConventionType(typeof(DefaultApiConventions))]
 //[ApiExplorerSettings(IgnoreApi = true)]
 public class ProdutosController : ControllerBase
 {

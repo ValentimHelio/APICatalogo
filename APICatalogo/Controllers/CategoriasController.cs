@@ -144,6 +144,7 @@ public class CategoriasController : ControllerBase
     }
 
     [HttpPut("{id:int}")]
+    [ApiConventionMethod(typeof(DefaultApiConventions),nameof(DefaultApiConventions.Put))]
     public async Task<ActionResult<CategoriaDTO>> Put(int id, CategoriaDTO categoriaDto)
     {
         if (id != categoriaDto.CategoriaId)
@@ -164,6 +165,7 @@ public class CategoriasController : ControllerBase
 
     [HttpDelete("{id:int}")]
     [Authorize(Policy = "AdminOnly")]
+    [ApiConventionMethod(typeof(DefaultApiConventions), nameof(DefaultApiConventions.Delete))]
     public async Task<ActionResult<CategoriaDTO>> Delete(int id)
     {
         var categoria = await _uof.CategoriaRepository.GetAsync(c => c.CategoriaId == id);

@@ -13,6 +13,7 @@ namespace APICatalogo.Controllers;
 
 [Route("[controller]")]
 [ApiController]
+[Produces("application/json")]
 //[ApiExplorerSettings(IgnoreApi = true)]
 public class ProdutosController : ControllerBase
 {

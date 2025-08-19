@@ -14,6 +14,7 @@ namespace APICatalogo.Controllers;
 [Route("[controller]")]
 [ApiController]
 [EnableRateLimiting("fixedwindow")]
+[Produces("application/json")]
 //[ApiExplorerSettings(IgnoreApi = true)]
 public class CategoriasController : ControllerBase
 {
@@ -88,6 +89,8 @@ public class CategoriasController : ControllerBase
     /// <param name="id"></param>
     /// <returns>Objetos Categoria</returns>
     [HttpGet("{id:int}", Name = "ObterCategoria")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CategoriaDTO>> Get(int id)
     {
         var categoria = await _uof.CategoriaRepository.GetAsync(c => c.CategoriaId == id);
@@ -120,6 +123,8 @@ public class CategoriasController : ControllerBase
     /// <returns>O objeto Categoria incluida</returns>
     /// <remarks>Retorna um objeto Categoria incluído</remarks>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CategoriaDTO>> Post(CategoriaDTO categoriaDto)
     {
         if (categoriaDto is null)

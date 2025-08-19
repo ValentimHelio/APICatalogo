@@ -7,6 +7,7 @@
     <UserSecretsId>4a094989-bf30-4fc7-b847-81a6748a2e20</UserSecretsId>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
+    <IncludeOpenApiAnalyzers>true</IncludeOpenApiAnalyzers>
   </PropertyGroup>
 
   <ItemGroup>

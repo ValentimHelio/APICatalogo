@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using X.PagedList;
+using Microsoft.AspNetCore.Http;
 
 namespace APICatalogo.Controllers;
 
@@ -82,6 +83,9 @@ public class ProdutosController : ControllerBase
 
     [Authorize(Policy = "UserOnly")]
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesDefaultResponseType]
     public async Task<ActionResult<IEnumerable<ProdutoDTO>>> Get()
     {
         var produtos = await _uof.ProdutoRepository.GetAllAsync();
@@ -110,9 +114,6 @@ public class ProdutosController : ControllerBase
         return Ok(produtoDto);
     }
 
-
-
-
     [HttpPost]
     public async Task<ActionResult<ProdutoDTO>> Create(ProdutoDTO produtoDto)
     {
@@ -129,10 +130,11 @@ public class ProdutosController : ControllerBase
         return new CreatedAtRouteResult("ObterProduto", new { id = novoProdutoDto.ProdutoId }, novoProdutoDto);
     }
 
-
-
-
     [HttpPatch("{id}/UpdatePartial")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesDefaultResponseType]
     public async Task<ActionResult<ProdutoDTOUpdateResponse>> Patch(int id, JsonPatchDocument<ProdutoDTOUpdateRequest> patchProdutoDto)
     {
         //valida input 
@@ -167,9 +169,10 @@ public class ProdutosController : ControllerBase
         return Ok(_mapper.Map<ProdutoDTOUpdateResponse>(produto));
     }
 
-
-
     [HttpPut("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesDefaultResponseType]
     public async Task<ActionResult<ProdutoDTO>> Update(int id, ProdutoDTO produtoDto)
     {
         if (id != produtoDto.ProdutoId)

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 namespace APICatalogo.Controllers;
 
@@ -37,6 +38,9 @@ public class AuthController : ControllerBase
     [HttpPost]
     [Authorize(Policy = "SuperAdminOnly")]
     [Route("CreateRole")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status400BadRequest)]
+    [ProducesDefaultResponseType]
     public async Task<IActionResult> CreateRole(string roleName)
     {
         var roleExist = await _roleManager.RoleExistsAsync(roleName);
@@ -52,8 +56,7 @@ public class AuthController : ControllerBase
                         new Response
                         {
                             Status = "Success",
-                            Message =
-                        $"Role {roleName} added successfully"
+                            Message = $"Role {roleName} added successfully"
                         });
             }
             else
@@ -63,8 +66,7 @@ public class AuthController : ControllerBase
                    new Response
                    {
                        Status = "Error",
-                       Message =
-                       $"Issue adding the new {roleName} role"
+                       Message = $"Issue adding the new {roleName} role"
                    });
             }
         }
@@ -75,6 +77,9 @@ public class AuthController : ControllerBase
     [HttpPost]
     [Authorize(Policy = "SuperAdminOnly")]
     [Route("AddUserToRole")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status400BadRequest)]
+    [ProducesDefaultResponseType]
     public async Task<IActionResult> AddUserToRole(string email, string roleName)
     {
         var user = await _userManager.FindByEmailAsync(email);
@@ -89,8 +94,7 @@ public class AuthController : ControllerBase
                        new Response
                        {
                            Status = "Success",
-                           Message =
-                       $"User {user.Email} added to the {roleName} role"
+                           Message = $"User {user.Email} added to the {roleName} role"
                        });
             }
             else
@@ -115,6 +119,9 @@ public class AuthController : ControllerBase
     /// <remarks>Retorna o Status 200 e o token </remarks> 
     [HttpPost]
     [Route("login")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesDefaultResponseType]
     public async Task<IActionResult> Login([FromBody] LoginModel model)
     {
         var user = await _userManager.FindByNameAsync(model.UserName!);
@@ -136,16 +143,13 @@ public class AuthController : ControllerBase
                 authClaims.Add(new Claim(ClaimTypes.Role, userRole));
             }
 
-            var token = _tokenService.GenerateAccessToken(authClaims,
-                                                         _configuration);
+            var token = _tokenService.GenerateAccessToken(authClaims, _configuration);
 
             var refreshToken = _tokenService.GenerateRefreshToken();
 
-            _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInMinutes"],
-                               out int refreshTokenValidityInMinutes);
+            _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInMinutes"], out int refreshTokenValidityInMinutes);
 
-            user.RefreshTokenExpiryTime =
-                            DateTime.Now.AddMinutes(refreshTokenValidityInMinutes);
+            user.RefreshTokenExpiryTime = DateTime.Now.AddMinutes(refreshTokenValidityInMinutes);
 
             user.RefreshToken = refreshToken;
 
@@ -170,6 +174,9 @@ public class AuthController : ControllerBase
     /// <remarks>retorna o Status 200</remarks>
     [HttpPost]
     [Route("register")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(Response), StatusCodes.Status500InternalServerError)]
+    [ProducesDefaultResponseType]
     public async Task<IActionResult> Register([FromBody] RegisterModel model)
     {
         var userExists = await _userManager.FindByNameAsync(model.Username!);
@@ -191,8 +198,7 @@ public class AuthController : ControllerBase
 
         if (!result.Succeeded)
         {
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                   new Response { Status = "Error", Message = "User creation failed." });
+            return StatusCode(StatusCodes.Status500InternalServerError, new Response { Status = "Error", Message = "User creation failed." });
         }
 
         return Ok(new Response { Status = "Success", Message = "User created successfully!" });
@@ -201,6 +207,7 @@ public class AuthController : ControllerBase
 
     [HttpPost]
     [Route("refresh-token")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RefreshToken(TokenModel tokenModel)
     {
 
@@ -209,11 +216,9 @@ public class AuthController : ControllerBase
             return BadRequest("Invalid client request");
         }
 
-        string? accessToken = tokenModel.AccessToken
-                              ?? throw new ArgumentNullException(nameof(tokenModel));
+        string? accessToken = tokenModel.AccessToken ?? throw new ArgumentNullException(nameof(tokenModel));
 
-        string? refreshToken = tokenModel.RefreshToken
-                               ?? throw new ArgumentException(nameof(tokenModel));
+        string? refreshToken = tokenModel.RefreshToken ?? throw new ArgumentException(nameof(tokenModel));
 
         var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken!, _configuration);
 
@@ -232,8 +237,7 @@ public class AuthController : ControllerBase
             return BadRequest("Invalid access token/refresh token");
         }
 
-        var newAccessToken = _tokenService.GenerateAccessToken(
-                                           principal.Claims.ToList(), _configuration);
+        var newAccessToken = _tokenService.GenerateAccessToken(principal.Claims.ToList(), _configuration);
 
         var newRefreshToken = _tokenService.GenerateRefreshToken();
 
@@ -251,6 +255,9 @@ public class AuthController : ControllerBase
     [Authorize(Policy = "ExclusiveOnly")]
     [HttpPost]
     [Route("revoke/{username}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(string), StatusCodes.Status400BadRequest)]
+    [ProducesDefaultResponseType]
     public async Task<IActionResult> Revoke(string username)
     {
         var user = await _userManager.FindByNameAsync(username);

@@ -30,6 +30,12 @@ public class ProdutosController : ControllerBase
         _logger = logger;
     }
 
+    public ProdutosController(IUnitOfWork iof, IMapper mapper)
+    {
+        _uof = iof;
+        _mapper = mapper;
+    }
+
     [HttpGet("produtoPorCategoria/{id}")]
     public async Task<ActionResult<IEnumerable<ProdutoDTO>>> GetProdutosPorCategoria(int id)
     {

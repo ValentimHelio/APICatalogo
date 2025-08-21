@@ -91,34 +91,51 @@ public class ProdutosController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesDefaultResponseType]
     public async Task<ActionResult<IEnumerable<ProdutoDTO>>> Get()
     {
-        var produtos = await _uof.ProdutoRepository.GetAllAsync();
-        if (produtos is null) { return NotFound(); }
-        // var destino = _mapper.Map<Destino>(origem);
-        var produtosDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
-        return Ok(produtosDto);
-    }
+        try
+        {
+            var produtos = await _uof.ProdutoRepository.GetAllAsync();
 
+            if (produtos is null) 
+                return NotFound();
+
+            var produtosDto = _mapper.Map<IEnumerable<ProdutoDTO>>(produtos);
+            return Ok(produtosDto);
+        }
+        catch (Exception)
+        {
+            return BadRequest();
+        }
+    }
 
     /// <summary>
     /// Obtem o produto pelo seu identificador id
     /// </summary>
     /// <param name="id">Código do produto</param>
     /// <returns>Um objeto Produto</returns>
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     [HttpGet("{id}", Name = "ObterProduto")]
-    public async Task<ActionResult<ProdutoDTO>> Get(int id)
+    public async Task<ActionResult<ProdutoDTO>> Get(int? id)
     {
-        var produto = await _uof.ProdutoRepository.GetAsync(p => p.ProdutoId == id);
+        if (id == null || id <= 0)
+        {
+            return BadRequest("ID de produto inválido");
+        }
+
+        var produto = await _uof.ProdutoRepository.GetAsync(c => c.ProdutoId == id);
         if (produto is null)
         {
-            _logger.LogWarning($"Produto com id = {id} não encontrado...");
-            return NotFound($"Produto com id = {id} não encontrado...");
+            return NotFound("Produto não encontrado...");
         }
         var produtoDto = _mapper.Map<ProdutoDTO>(produto);
         return Ok(produtoDto);
     }
+
 
     [HttpPost]
     public async Task<ActionResult<ProdutoDTO>> Create(ProdutoDTO produtoDto)

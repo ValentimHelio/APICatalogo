@@ -42,8 +42,7 @@ public class GetProdutoUnitTests : IClassFixture<ProdutosUnitTestController>
         var data = await _controller.Get(prodId);
 
         // Assert  
-        data.Result.Should().BeOfType<NotFoundObjectResult>()
-                    .Which.StatusCode.Should().Be(404);
+        data.Result.Should().BeOfType<NotFoundObjectResult>().Which.StatusCode.Should().Be(404);
     }
 
     [Fact]
@@ -56,8 +55,7 @@ public class GetProdutoUnitTests : IClassFixture<ProdutosUnitTestController>
         var data = await _controller.Get(prodId);
 
         // Assert  
-        data.Result.Should().BeOfType<BadRequestObjectResult>()
-                   .Which.StatusCode.Should().Be(400);
+        data.Result.Should().BeOfType<BadRequestObjectResult>().Which.StatusCode.Should().Be(400);
     }
 
     [Fact]

@@ -194,11 +194,11 @@ public class ProdutosController : ControllerBase
         return Ok(_mapper.Map<ProdutoDTOUpdateResponse>(produto));
     }
 
-    [HttpPut("{id:int}")]
+    [HttpPut("{id:int}", Name = "Update")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesDefaultResponseType]
-    public async Task<ActionResult<ProdutoDTO>> Update(int id, ProdutoDTO produtoDto)
+    public async Task<ActionResult<ProdutoDTO>> Put(int id, ProdutoDTO produtoDto)
     {
         if (id != produtoDto.ProdutoId)
         {

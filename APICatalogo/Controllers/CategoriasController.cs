@@ -6,6 +6,7 @@ using APICatalogo.Repositories.IRepositories;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using X.PagedList;
 
@@ -21,10 +22,14 @@ public class CategoriasController : ControllerBase
     private readonly IUnitOfWork _uof;
     private readonly ILogger<CategoriasController> _logger;
 
-    public CategoriasController(IUnitOfWork iof, ILogger<CategoriasController> logger)
+    private readonly IMemoryCache _cache;
+    private const string CacheCategoriasKey = "CacheCategorias";
+
+    public CategoriasController(IUnitOfWork iof, ILogger<CategoriasController> logger, IMemoryCache cache)
     {
         _uof = iof;
         _logger = logger;
+        _cache = cache;
     }
 
     /// <summary>
@@ -39,12 +44,30 @@ public class CategoriasController : ControllerBase
     [ProducesDefaultResponseType]
     public async Task<ActionResult<IEnumerable<CategoriaDTO>>> Get()
     {
-        var categorias = await _uof.CategoriaRepository.GetAllAsync();
+        if (!_cache.TryGetValue(CacheCategoriasKey, out IEnumerable<Categoria>? categorias))
+        {
+            categorias = await _uof.CategoriaRepository.GetAllAsync();
 
-        if (categorias is null)
-            return NotFound("Não existem categorias...");
+            if (categorias is not null && categorias.Any())
+            {
+                var cacheOptions = new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30),
+                    SlidingExpiration = TimeSpan.FromSeconds(15),
+                    Priority = CacheItemPriority.High
+                };
+                _cache.Set(CacheCategoriasKey, categorias, cacheOptions);
+            }
+            else
+            {
+                _logger.LogWarning("Não exitem Categorias...");
+                return NotFound("Não existem categorias...");
+            }
 
-        var categoriasDto = categorias.ToCategoriaDTOList();
+        }
+
+        var categoriasDto = categorias?.ToCategoriaDTOList();
+
 
         return Ok(categoriasDto);
     }

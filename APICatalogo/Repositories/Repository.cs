@@ -22,6 +22,7 @@ namespace APICatalogo.Repositories
 
         public async Task<T?> GetAsync(Expression<Func<T, bool>> predicate)
         {
+            System.Threading.Thread.Sleep(3000);
             return await _context.Set<T>().FirstOrDefaultAsync(predicate);
         }
 

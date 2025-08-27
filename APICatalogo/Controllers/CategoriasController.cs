@@ -210,6 +210,14 @@ public class CategoriasController : ControllerBase
         var categoriaAtualizada = _uof.CategoriaRepository.Update(categoria);
         await _uof.CommitAsync();
 
+        _cache.Set($"CacheCatergoria_{id}", categoriaAtualizada, new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30),
+            SlidingExpiration = TimeSpan.FromSeconds(15),
+            Priority = CacheItemPriority.High
+        });
+        _cache.Remove(CacheCategoriasKey);
+
         var categoriaAtualizadaDto = categoriaAtualizada.ToCategoriaDTO();
 
         return Ok(categoriaAtualizadaDto);

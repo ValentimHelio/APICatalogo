@@ -178,6 +178,16 @@ public class CategoriasController : ControllerBase
         var categoriaCriada = _uof.CategoriaRepository.Create(categoria);
         await _uof.CommitAsync();
 
+        _cache.Remove("CacheCategoriasKey");
+        var cacheKey = $"CacheCatergoria_{categoriaCriada.CategoriaId}";
+        var cacheOptions = new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30),
+            SlidingExpiration = TimeSpan.FromSeconds(15),
+            Priority = CacheItemPriority.High
+        };
+        _cache.Set(cacheKey, categoriaCriada, cacheOptions);
+
         var novaCategoriaDto = categoriaCriada.ToCategoriaDTO();
 
         return new CreatedAtRouteResult("ObterCategoria", new { id = novaCategoriaDto.CategoriaId }, novaCategoriaDto);

@@ -48,22 +48,12 @@ public class CategoriasController : ControllerBase
         {
             categorias = await _uof.CategoriaRepository.GetAllAsync();
 
-            if (categorias is not null && categorias.Any())
-            {
-                var cacheOptions = new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30),
-                    SlidingExpiration = TimeSpan.FromSeconds(15),
-                    Priority = CacheItemPriority.High
-                };
-                _cache.Set(CacheCategoriasKey, categorias, cacheOptions);
-            }
-            else
+            if (categorias is null && !categorias.Any())
             {
                 _logger.LogWarning("Não exitem Categorias...");
                 return NotFound("Não existem categorias...");
             }
-
+            SetCache(CacheCategoriasKey, categorias);
         }
 
         var categoriasDto = categorias?.ToCategoriaDTOList();
@@ -248,5 +238,30 @@ public class CategoriasController : ControllerBase
 
         return Ok(categoriaExcluidaDto);
     }
+
+    private string GetCategoriaCacheKey(int id) => $"CacheCategoria_{id}";
+
+    private void SetCache<T>(string key, T data)
+    {
+        var cacheOptions = new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30),
+            SlidingExpiration = TimeSpan.FromSeconds(15),
+            Priority = CacheItemPriority.High
+        };
+        _cache.Set(key, data, cacheOptions);
+    }
+
+    private void InvalidateCacheAfterChange(int id, Categoria? categoria = null)
+    {
+        _cache.Remove(CacheCategoriasKey);
+        _cache.Remove(GetCategoriaCacheKey(id));
+
+        if (categoria != null)
+        {
+            SetCache(GetCategoriaCacheKey(id), categoria);
+        }
+    }
+
 
 }

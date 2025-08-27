@@ -108,27 +108,18 @@ public class CategoriasController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CategoriaDTO>> Get(int id)
     {
-        var CacheCategoriaKey = $"CacheCategoria_{id}";
+        var cachekey = GetCategoriaCacheKey(id);
 
-        if (!_cache.TryGetValue(CacheCategoriaKey, out Categoria? categoria))
+        if (!_cache.TryGetValue(cachekey, out Categoria? categoria))
         {
             categoria = await _uof.CategoriaRepository.GetAsync(c => c.CategoriaId == id);
 
-            if (categoria is not null)
-            {
-                var cacheOptions = new MemoryCacheEntryOptions
-                {
-                    AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30),
-                    SlidingExpiration = TimeSpan.FromSeconds(15),
-                    Priority = CacheItemPriority.High
-                };
-                _cache.Set(CacheCategoriaKey, categoria, cacheOptions);
-            }
-            else
+            if (categoria is null)
             {
                 _logger.LogWarning($"Categoria com id= {id} não encontrada...");
                 return NotFound($"Categoria com id= {id} não encontrada...");
             }
+            SetCache(cachekey, categoria);
         }
 
         var categoriaDto = categoria?.ToCategoriaDTO();
@@ -168,15 +159,7 @@ public class CategoriasController : ControllerBase
         var categoriaCriada = _uof.CategoriaRepository.Create(categoria);
         await _uof.CommitAsync();
 
-        _cache.Remove("CacheCategoriasKey");
-        var cacheKey = $"CacheCatergoria_{categoriaCriada.CategoriaId}";
-        var cacheOptions = new MemoryCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30),
-            SlidingExpiration = TimeSpan.FromSeconds(15),
-            Priority = CacheItemPriority.High
-        };
-        _cache.Set(cacheKey, categoriaCriada, cacheOptions);
+        InvalidateCacheAfterChange(categoriaCriada.CategoriaId, categoriaCriada);
 
         var novaCategoriaDto = categoriaCriada.ToCategoriaDTO();
 
@@ -189,7 +172,7 @@ public class CategoriasController : ControllerBase
     [ProducesDefaultResponseType]
     public async Task<ActionResult<CategoriaDTO>> Put(int id, CategoriaDTO categoriaDto)
     {
-        if (id != categoriaDto.CategoriaId)
+        if (id <= 0 && categoriaDto is null && id != categoriaDto?.CategoriaId)
         {
             _logger.LogWarning($"Dados inválidos...");
             return BadRequest("Dados inválidos");
@@ -200,13 +183,7 @@ public class CategoriasController : ControllerBase
         var categoriaAtualizada = _uof.CategoriaRepository.Update(categoria);
         await _uof.CommitAsync();
 
-        _cache.Set($"CacheCatergoria_{id}", categoriaAtualizada, new MemoryCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(30),
-            SlidingExpiration = TimeSpan.FromSeconds(15),
-            Priority = CacheItemPriority.High
-        });
-        _cache.Remove(CacheCategoriasKey);
+        InvalidateCacheAfterChange(id, categoriaAtualizada);
 
         var categoriaAtualizadaDto = categoriaAtualizada.ToCategoriaDTO();
 
@@ -231,8 +208,7 @@ public class CategoriasController : ControllerBase
         var categoriaExcluida = _uof.CategoriaRepository.Delete(categoria);
         await _uof.CommitAsync();
 
-        _cache.Remove($"CacheCategoria_{id}");
-        _cache.Remove(CacheCategoriasKey);
+        InvalidateCacheAfterChange(id);
 
         var categoriaExcluidaDto = categoriaExcluida.ToCategoriaDTO();
 

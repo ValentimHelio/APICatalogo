@@ -241,6 +241,9 @@ public class CategoriasController : ControllerBase
         var categoriaExcluida = _uof.CategoriaRepository.Delete(categoria);
         await _uof.CommitAsync();
 
+        _cache.Remove($"CacheCategoria_{id}");
+        _cache.Remove(CacheCategoriasKey);
+
         var categoriaExcluidaDto = categoriaExcluida.ToCategoriaDTO();
 
         return Ok(categoriaExcluidaDto);

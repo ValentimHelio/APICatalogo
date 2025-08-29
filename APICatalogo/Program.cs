@@ -215,19 +215,25 @@ builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    //Habilita o middleware para servir  o Swagger gerado como um endpoint JSON
-    app.UseSwagger();
-    // Habilita o middleware de arquivos  estatico
-    //app.UseSwaggerUI();
-    app.UseSwaggerUI(c =>
-    {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "APICatalogo");
-    });
+//// Configure the HTTP request pipeline.
+//if (app.Environment.IsDevelopment())
+//{
+//    //Habilita o middleware para servir  o Swagger gerado como um endpoint JSON
+//    app.UseSwagger();
+//    // Habilita o middleware de arquivos  estatico
+//    //app.UseSwaggerUI();
+//    app.UseSwaggerUI(c =>
+//    {
+//        c.SwaggerEndpoint("/swagger/v1/swagger.json", "APICatalogo");
+//    });
 
-}
+//}
+
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "APICatalogo");
+});
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
